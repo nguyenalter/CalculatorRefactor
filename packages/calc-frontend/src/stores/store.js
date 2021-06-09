@@ -9,6 +9,17 @@ import axios from "axios";
 const API_URL = "http://localhost:3000/calc";
 console.log(API_URL);
 Vue.use(Vuex);
+
+function appendToHistory(payload) {
+  // TODO - append to local storage.
+  // get current history
+  let oldHistory = JSON.parse(localStorage.getItem("history")) || [];
+  // append new record
+  oldHistory.push(payload);
+  // update local storage
+  localStorage.setItem("history", JSON.stringify(oldHistory));
+}
+
 export const store = new Vuex.Store({
   state: {
     result: "",
@@ -30,6 +41,13 @@ export const store = new Vuex.Store({
       if (responseBody.success) {
         commit("loadNewResult", {
           // mutating the result
+          result: responseBody.data.result,
+        });
+        appendToHistory({
+          timestamp: +new Date(),
+          firstVal: data.firstVal,
+          option: data.option,
+          secondVal: data.secondVal,
           result: responseBody.data.result,
         });
         return responseBody.data.result;

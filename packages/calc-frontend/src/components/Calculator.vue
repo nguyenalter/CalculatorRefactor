@@ -213,6 +213,7 @@ export default {
       [this.firstVal, this.secondVal] = [this.secondVal, this.firstVal];
     },
     clearAll() {
+      this.calculateTime = null;
       this.firstVal = this.secondVal = this.result = "";
       this.resetError();
     },

@@ -1,7 +1,7 @@
 <template>
-  <div class="history p-2 p-3">
-    <h1>This is a history page</h1>
-    <HistoryTable :people="people" />
+  <div class="history mx-5">
+    <p class="font-bold text-4xl text-center my-5">Calculation History</p>
+    <HistoryTable :historyData="historyData" />
   </div>
 </template>
 
@@ -14,12 +14,14 @@ export default {
   },
   data() {
     return {
-      people: [],
+      historyData: [],
     };
   },
   mounted() {
     // await fetch
-    this.people = [];
+    // TODO - fetch history if signed in
+    // local storage
+    this.historyData = JSON.parse(localStorage.getItem("history")) || [];
   },
 };
 </script>
