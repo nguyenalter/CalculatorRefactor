@@ -1,0 +1,27 @@
+Project Calculator {
+  Note: '''
+    # Calculator
+    Simple calculator using nodejs, sequelize, postgresql, vuejs and tailwindcss.
+  '''
+}
+
+Table Users as U{
+  id int [increment,not null]
+  username varchar [pk,not null, unique]
+  password varchar [not null]
+  createdAt timestamp
+  updateAt timestamp
+}
+
+Table Histories as H{
+  id int [pk, increment, not null]
+  username int [not null]
+  firstOperand varchar [not null]
+  operator varchar [not null]
+  secondOperand varchar [not null]
+  result varchar [not null]
+  createdAt timestamp
+  updateAt timestamp
+}
+
+ref: U.username < H.username
