@@ -25,19 +25,15 @@ export const store = new Vuex.Store({
       // This action will call mutation.
       // Can do async here!
       //setTimeout(() => commit("calculate", data), 1000);
-      try {
-        const res = await axios.post(API_URL, data);
-        let responseBody = res.data;
-        if (responseBody.success) {
-          commit("loadNewResult", {
-            // mutating the result
-            result: responseBody.data.result,
-          });
-          return responseBody.data.result;
-        } else console.log("Can not fetch the result");
-      } catch (error) {
-        console.log(error);
-      }
+      const res = await axios.post(API_URL, data);
+      let responseBody = res.data;
+      if (responseBody.success) {
+        commit("loadNewResult", {
+          // mutating the result
+          result: responseBody.data.result,
+        });
+        return responseBody.data.result;
+      } else console.log("Can not fetch the result");
     },
   },
 });
