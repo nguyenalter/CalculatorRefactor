@@ -9,6 +9,6 @@ export default function routeManager(app) {
   app.use("/calc", calcRoute);
 
   // Handle invalid url (404 status) - must be the last one.
-  app.use((req, res, next) => errorResponse(req, res, "Invalid url", 404));
+  app.use((req, res) => errorResponse(req, res, "Invalid url", 404));
   return;
 }

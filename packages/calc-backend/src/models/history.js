@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       username: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       isPublic: {
@@ -34,6 +34,10 @@ module.exports = (sequelize, DataTypes) => {
       result: {
         type: DataTypes.TEXT,
         allowNull: false,
+      },
+      timestamp: {
+        allowNull: false,
+        type: DataTypes.STRING,
       },
     },
     {
