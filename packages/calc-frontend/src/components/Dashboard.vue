@@ -17,6 +17,7 @@
 </template>
 
 <script>
+import Cookies from "js-cookie";
 export default {
   name: "Dashboard",
   props: {
@@ -25,7 +26,10 @@ export default {
   // TODO - sign out !
   methods: {
     signOutAttempt() {
-      this.$emit("signedOut");
+      Cookies.remove("token", { path: "" });
+      this.$store.commit("navigate", 0);
+      this.$store.commit("removeHistory");
+      this.$store.commit("userSignOut");
     },
   },
 };

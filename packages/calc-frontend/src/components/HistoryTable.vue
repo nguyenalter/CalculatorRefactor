@@ -1,7 +1,7 @@
 <!-- This example requires Tailwind CSS v2.0+ -->
 <template>
   <div class="container mx-auto grid justify-items-center">
-    <div v-if="hasHistory == null">
+    <div v-if="historyData.length == 0">
       <p class="font-bold text-4xl text-center my-5 text-blue-400">
         No Calculation History
       </p>
@@ -12,9 +12,10 @@
       </p>
       <div class="text-center">
         <button
+          @click="deleteAll"
           class="rounded border-2 border-blue-400 bg-red-400"
           v-tooltip="{
-            content: 'Delete your history (coming soon)',
+            content: 'Delete your history',
             placement: 'left',
             offset: 5,
           }"
@@ -33,9 +34,10 @@
           </svg>
         </button>
         <button
+          @click="exportCSV"
           class="rounded border-2 border-blue-400 bg-green-400"
           v-tooltip="{
-            content: 'Export to csv (coming soon)',
+            content: 'Export to csv',
             placement: 'right',
             offset: 5,
           }"
@@ -54,8 +56,14 @@
         </button>
       </div>
 
-      <p class="font-bold text-md text-left my-3 text-red-600">
+      <p
+        class="font-bold text-md text-left my-3 text-red-600"
+        v-if="username == ''"
+      >
         Sign in to save your history!
+      </p>
+      <p class="font-bold text-md text-left my-3 text-green-600" v-else>
+        Current user: {{ username }}
       </p>
       <div
         class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg"
@@ -172,8 +180,11 @@
                   font-medium
                 "
               >
-                <a href="#" class="text-indigo-600 hover:text-indigo-900"
-                  >Edit</a
+                <a
+                  href="javascript:"
+                  class="text-indigo-600 hover:text-indigo-900"
+                  @click="deleteRecord(record.timestamp)"
+                  >Remove</a
                 >
               </td>
             </tr>
@@ -186,26 +197,63 @@
 
 <script>
 import dayjs from "dayjs";
-
+import { saveAs } from "file-saver";
 export default {
   name: "HistoryTable",
-  props: {
-    historyData: [],
-  },
   data() {
     return {
       dayjs,
-      hasHistory: null,
     };
   },
-  mounted() {
-    this.hasHistory = localStorage.getItem("history");
+  computed: {
+    username() {
+      return this.$store.state.username;
+    },
+    historyData() {
+      return [
+        ...(JSON.parse(localStorage.getItem("history")) ||
+          this.$store.state.historyData),
+        //].sort((data1, data2) => data2.timestamp - data1.timestamp);
+      ].reverse();
+    },
   },
+  mounted() {},
   methods: {
-    deleteAllHistory() {
-      this.hasHistory = null;
-      localStorage.removeItem("history");
-      // TODO - delete from server if signed in
+    deleteAll() {
+      console.log("delete all clicked");
+      if (this.username == "") {
+        // delete from local
+        localStorage.removeItem("history");
+      } else {
+        // delete from server
+        this.$store.dispatch("deleteAll");
+      }
+    },
+    exportCSV() {
+      console.log("export clicked");
+      const currentHistory = this.historyData;
+      let csv =
+        "firstOperand,operator,secondOperand,result,timestamp\n" +
+        currentHistory
+          .map(function(d) {
+            return JSON.stringify(Object.values(d));
+          })
+          .join("\n")
+          .replace(/(^\[)|(\]$)/gm, "");
+      var file = new File([csv], "history.csv", {
+        type: "text/plain;charset=utf-8",
+      });
+      saveAs(file);
+    },
+    deleteRecord(timestamp) {
+      console.log("remove clicked");
+      if (this.username == "") {
+        // delete from local
+        localStorage.removeItem("history");
+      } else {
+        // delete from server
+        this.$store.dispatch("deleteOne", { timestamp });
+      }
     },
   },
 };

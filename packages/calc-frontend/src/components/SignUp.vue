@@ -62,7 +62,7 @@
       <div class="text-sm text-right">
         <a
           href="javascript:"
-          @click="$emit('navigateTo', 1)"
+          @click="navigateToSignIn"
           class="font-medium text-indigo-600 hover:text-indigo-500"
         >
           Already have an account?
@@ -95,6 +95,14 @@ export default {
   methods: {
     signUpAttempt() {
       // TODO
+      if (
+        this.password == "" ||
+        this.username == "" ||
+        this.confirm_password == ""
+      ) {
+        this.error = "Username and password can not be empty!";
+        return;
+      }
       if (this.password != this.confirm_password) {
         this.error = "Confirm password mismatch!";
         return;
@@ -106,7 +114,7 @@ export default {
         })
         .then((res) => {
           if (res.code == 200) {
-            this.$emit("navigateTo", 2);
+            this.$store.commit("navigate", 2);
             this.error = "";
           } else {
             this.error = res.errorMessage;
@@ -116,6 +124,9 @@ export default {
           this.error = err;
           console.log(err);
         });
+    },
+    navigateToSignIn() {
+      this.$store.commit("navigate", 1);
     },
   },
 };

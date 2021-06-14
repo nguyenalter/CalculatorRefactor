@@ -45,6 +45,23 @@ async function appendHistoryToDatabase(user, data) {
   return false;
 }
 
+async function deleteRow(username, timestamp) {
+  return await models.Histories.destroy({
+    where: {
+      username,
+      timestamp,
+    },
+  });
+}
+
+async function deleteAll(username) {
+  return await models.Histories.destroy({
+    where: {
+      username,
+    },
+  });
+}
+
 export const signUp = async (req, res) => {
   try {
     let { username, password, historyData } = req.body;
@@ -154,6 +171,36 @@ export const appendToHistory = async (req, res) => {
     const username = res.locals.username;
     // insert success
     await appendHistoryToDatabase(username, data);
+    return successResponse(req, res, {
+      success: true,
+    });
+  } catch (error) {
+    return errorResponse(req, res, error.message, 401);
+  }
+};
+
+export const deleteOneRecord = async (req, res) => {
+  try {
+    // token had been decoded in middleware phase, username stored in res.locals.username
+    const { timestamp } = req.body;
+    console.log(timestamp);
+    const username = res.locals.username;
+    // insert success
+    await deleteRow(username, timestamp);
+    return successResponse(req, res, {
+      success: true,
+    });
+  } catch (error) {
+    return errorResponse(req, res, error.message, 401);
+  }
+};
+
+export const deleteAllRecord = async (req, res) => {
+  try {
+    // token had been decoded in middleware phase, username stored in res.locals.username
+    const username = res.locals.username;
+    // insert success
+    await deleteAll(username);
     return successResponse(req, res, {
       success: true,
     });

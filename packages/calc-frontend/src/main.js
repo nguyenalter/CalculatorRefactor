@@ -5,8 +5,15 @@ import "./assets/tailwind.css";
 import router from "./router";
 import VTooltip from "v-tooltip";
 import Vuex from "vuex";
-
 import { store } from "./stores/store";
+
+router.beforeEach((to, from, next) => {
+  console.log(`To route: ${to.name}, from route: ${from.name}`);
+  if (store.state.firstLoad) {
+    store.dispatch("validateOnMounted");
+  }
+  next();
+});
 
 Vue.config.productionTip = false;
 Vue.use(Vuex);
