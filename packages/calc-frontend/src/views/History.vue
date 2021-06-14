@@ -1,8 +1,5 @@
 <template>
-  <div class="history mx-5">
-    <p class="font-bold text-4xl text-center my-5">Calculation History</p>
-    <HistoryTable :historyData="historyData" />
-  </div>
+  <HistoryTable :historyData="historyData" />
 </template>
 
 <script>
@@ -21,7 +18,9 @@ export default {
     // await fetch
     // TODO - fetch history if signed in
     // local storage
-    this.historyData = JSON.parse(localStorage.getItem("history")) || [];
+    this.historyData = (
+      JSON.parse(localStorage.getItem("history")) || []
+    ).reverse();
   },
 };
 </script>

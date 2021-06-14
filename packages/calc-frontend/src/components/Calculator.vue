@@ -1,6 +1,8 @@
 <template>
   <div class="container mx-auto grid items-center ">
-    <p class="font-bold text-4xl text-center my-5">{{ msg }}</p>
+    <p class="font-bold text-4xl text-center mt-5 text-blue-400">
+      Simple Calculator
+    </p>
     <br />
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mx-20">
       <div class="col-span-auto">
@@ -97,10 +99,7 @@
             CALC
           </button>
         </div>
-        <p
-          v-if="errorObj.status == true"
-          class="text-red-400 font-bold text-md"
-        >
+        <p v-if="errorObj.status" class="text-red-400 font-bold text-md">
           <!-- Return errorObj message based on type -->
           Error: {{ errorObj.message[errorObj.fromUser ? 0 : 1] }}
         </p>
