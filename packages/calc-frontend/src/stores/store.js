@@ -1,165 +1,141 @@
-import Vue from "vue";
-import Vuex from "vuex";
-import Cookies from "js-cookie";
-import {
-  getGuestHistory,
-  updateNewHistoryToDatabase,
-  validateToken,
-  axios,
-  appendToGuestHistory,
-  removeOneRecord,
-  removeAllRecord,
-} from "./utils";
+/* eslint-disable no-unused-vars */
+import Vue from 'vue';
+import Vuex from 'vuex';
+import * as utils from '../services/utils';
+import * as historyService from '../services/history';
+import * as userService from '../services/user';
 
 Vue.use(Vuex);
 export const store = new Vuex.Store({
   state: {
     // default 0 - sign up page, 1 - sign in, 2 - dashboard
-    firstLoad: true,
-    navigateTo: 0,
-    historyData: [],
-    username: "",
+    historyData: utils.getGuestHistory() || [],
+    username: '',
   },
   mutations: {
-    loaded(state) {
-      state.firstLoad = false;
-    },
     userSignedIn(state, payload) {
       // 2 - dashboard
-      localStorage.removeItem("history");
-      //localStorage.setItem("history", JSON.stringify(payload.historyData));
+      localStorage.removeItem('history');
+      // localStorage.setItem("history", JSON.stringify(payload.historyData));
       state.historyData = payload.historyData;
-      state.navigateTo = 2;
       state.username = payload.username;
     },
-    userSignOut(state) {
-      state.navigateTo = 0;
+    userSignedOut(state) {
       state.historyData = [];
-      state.username = "";
+      state.username = '';
     },
-    appendHistory(state, payload) {
+    appendToStoredHistory(state, payload) {
       console.log("add data to store's history");
       state.historyData.push(payload.newData);
     },
-    removeHistory(state) {
-      console.log("remove history data from store");
+    removeHistoryTable(state) {
+      console.log('history table got removed');
       state.historyData = [];
     },
-    removeRecord(state, timestamp) {
-      state.historyData = state.historyData.filter(
-        (ele) => ele.timestamp != timestamp
-      );
-    },
-    navigate(state, payload) {
-      state.navigateTo = payload;
+    removeItemInHistoryTable(state, createdAt) {
+      console.log(`removed ${createdAt} from history table`);
+      state.historyData = state.historyData.filter((ele) => ele.createdAt != createdAt);
     },
   },
+  getters: {
+    getUsername: (state) => state.username,
+    getHistory: (state) => state.historyData,
+  },
   actions: {
-    async fetchResult({ commit }, data) {
-      console.log("calculating");
+    async fetchResult({ commit, getters }, data) {
+      console.log('calculating');
       // fetch result from server
-      const res = await axios.post("/calc", data);
-      let responseBody = res.data;
-      if (responseBody.success) {
-        let newData = {
-          firstVal: data.firstVal,
-          option: data.option,
-          secondVal: data.secondVal,
-          result: responseBody.data.result,
-          timestamp: +new Date(),
-        };
-        // check current token
-        const resAuth = await validateToken();
-        if (resAuth.data.code == 200) {
-          console.log("signed in user");
-          // token valid, signed in already !
-          // update new data to db if user signed in
-          const updateSuccess = await updateNewHistoryToDatabase(newData);
-          if (!updateSuccess) {
-            throw new Error("Can not append new data");
-          }
-          commit({
-            type: "appendHistory",
-            newData,
-          });
-        } else {
-          // guest user, add to local storage instead
-          console.log("guest user");
-          commit("userSignOut");
-          appendToGuestHistory(newData);
-        }
+      let res;
+      try {
+        res = await userService.calculateResult(data);
+        if (res.status == 200) {
+          const newData = {
+            firstVal: data.firstVal,
+            option: data.option,
+            secondVal: data.secondVal,
+            result: res.data.result,
+            createdAt: utils.getCurrentFormattedTime(),
+          };
+          utils.appendToGuestHistory(newData);
 
-        return responseBody.data.result;
-      } else console.log("Can not fetch the result");
+          await historyService.addOneDataToUserHistory(newData);
+          const res2 = await historyService.getUserHistory();
+          const { historyData, username } = res2.data;
+          commit('userSignedIn', {
+            historyData,
+            username,
+          });
+        }
+      } catch (err) {
+        if (getters.getUsername != '') {
+          commit('userSignedOut');
+        }
+        console.log('invalid token -> guest user');
+        console.log(err);
+      }
+      return res.data.result;
     },
     async proceedSignIn({ commit }, data) {
-      console.log("fetching user data");
-      const historyData = getGuestHistory();
-      const res = await axios.post("/user/signin", {
-        ...data,
-        historyData,
-      });
-      // response body will hold new history (including old and new one) and token
-      let responseBody = res.data;
-      if (responseBody.code == 200) {
+      console.log('fetching user data');
+      try {
+        const res = await userService.signInAttempt(data);
+        const { token } = res.data;
+        userService.createUserToken(token);
+        const localHistoryData = utils.getGuestHistory();
+        if (localHistoryData != []) await historyService.addUserHistory(localHistoryData);
+        const res2 = await historyService.getUserHistory();
         // Update current state in store !
-        commit("userSignedIn", {
-          historyData: responseBody.data.historyData,
-          username: data.username,
+        const { historyData, username } = res2.data;
+        commit('userSignedIn', {
+          historyData,
+          username,
         });
-        Cookies.set("token", responseBody.data.token, {
-          expires: 1,
-          path: "",
-        });
+        return res;
+      } catch (err) {
+        console.log(err);
+        throw err;
       }
-      return responseBody;
     },
 
     async proceedSignUp({ commit }, data) {
-      console.log("fetching new user data");
-      //console.log(data);
-      const historyData = getGuestHistory();
-      const res = await axios.post("/user/signup", {
-        ...data,
-        historyData,
-      });
-      // response body will hold token
-      let responseBody = res.data;
-      if (responseBody.code == 200) {
-        // Update current state in store !
-        commit("userSignedIn", {
-          historyData,
+      console.log('fetching new user data');
+      try {
+        const res = await userService.signUpNewUser(data);
+        const { token } = res.data;
+        userService.createUserToken(token);
+        const localHistoryData = utils.getGuestHistory();
+        if (localHistoryData != []) await historyService.addUserHistory(localHistoryData);
+        commit('userSignedIn', {
+          historyData: localHistoryData,
           username: data.username,
         });
-        // TODO
-        Cookies.set("token", responseBody.data.token, {
-          expires: 1,
-          path: "",
-        });
-      }
-      return responseBody;
-    },
-    async validateOnMounted({ commit }) {
-      const resAuth = await validateToken();
-      if (resAuth.data.code == 200) {
-        console.log("signed in user");
-        // token valid, signed in already !
-        const payload = resAuth.data.data;
-        commit("userSignedIn", payload);
-        commit("loaded");
+        return res;
+      } catch (err) {
+        console.log(err);
+        throw err;
       }
     },
-    async deleteAll({ commit }) {
-      const res = await removeAllRecord();
-      if (res.data.code == 200) {
-        commit("removeHistory");
-      } else console.log("delete all failed");
+    async validateToken({ commit }) {
+      const res = await historyService.getUserHistory();
+      if (res.status == 200) {
+        console.log('valid token!');
+        // token valid, user already signed in  !
+        commit('userSignedIn', res.data);
+      }
     },
-    async deleteOne({ commit }, data) {
-      const res = await removeOneRecord(data);
-      if (res.data.code == 200) {
-        commit("removeRecord", data.timestamp);
-      } else console.log("delete one failed");
+    async deleteAllHistoryData({ commit }) {
+      const res = await historyService.removeAllDataFromUserHistory();
+      if (res.status == 200) {
+        commit('removeHistoryTable');
+      }
+      return res.data;
+    },
+    async deleteOneHistoryData({ commit }, data) {
+      const res = await historyService.removeOneDataFromUserHistory(data.createdAt);
+      if (res.status == 200) {
+        commit('removeItemInHistoryTable', data.createdAt);
+      }
+      return res.data;
     },
   },
 });

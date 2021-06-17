@@ -22,7 +22,7 @@
             type="text"
             autocomplete="text"
             required="true"
-            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+            class="input-field"
             placeholder="Username"
           />
         </div>
@@ -34,7 +34,7 @@
             type="password"
             autocomplete="current-password"
             required="password"
-            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+            class="input-field"
             placeholder="Password"
           />
         </div>
@@ -46,19 +46,17 @@
         Error: {{ error }}
       </p>
       <div class="text-sm text-right">
-        <a
-          href="javascript:"
-          @click="navigateToSignUp"
+        <router-link to="/account/signup"
           class="font-medium text-indigo-600 hover:text-indigo-500"
         >
           Don't have an account?
-        </a>
+        </router-link>
       </div>
       <div>
         <button
           type="button"
           @click="signInAttempt"
-          class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          class="signIn-btn"
         >
           Sign in
         </button>
@@ -68,42 +66,52 @@
 </template>
 
 <script>
+
 export default {
-  name: "SignIn",
+  name: 'SignIn',
   data() {
     return {
-      username: "",
-      password: "",
-      error: "",
+      username: '',
+      password: '',
+      error: '',
     };
   },
   methods: {
-    signInAttempt() {
-      if (this.password == "" || this.username == "") {
-        this.error = "Username and password can not be empty!";
+    async signInAttempt() {
+      if (this.password == '' || this.username == '') {
+        this.error = 'Username and password can not be empty!';
         return;
       }
-      this.$store
-        .dispatch("proceedSignIn", {
-          username: this.username,
-          password: this.password,
-        })
-        .then((res) => {
-          if (res.code == 200) {
-            this.$store.commit("navigate", 2);
-            this.error = "";
-          } else {
-            this.error = res.errorMessage;
-          }
-        })
-        .catch((err) => {
-          this.error = err;
-          console.log(err);
-        });
-    },
-    navigateToSignUp() {
-      this.$store.commit("navigate", 0);
+      try {
+        await this.$store
+          .dispatch('proceedSignIn', {
+            username: this.username,
+            password: this.password,
+          });
+        this.$router.push('/account');
+      } catch (err) {
+        if (err.response.status == 401) this.error = 'Invalid username or password!';
+        else this.error = `Server error with status ${err.response.status}`;
+      }
     },
   },
 };
 </script>
+
+<style lang="postcss" scoped>
+.signIn-btn {
+  @apply group relative w-full flex justify-center
+    py-2 px-4 border border-transparent text-sm
+    font-medium rounded-md text-white bg-indigo-600
+    hover:bg-indigo-700 focus:outline-none focus:ring-2
+    focus:ring-offset-2 focus:ring-indigo-500;
+}
+
+.input-field {
+  @apply appearance-none rounded-none relative
+  block w-full px-3 py-2 border border-gray-300
+  placeholder-gray-500 text-gray-900 rounded-b-md
+  focus:outline-none focus:ring-indigo-500
+  focus:border-indigo-500 focus:z-10 sm:text-sm;
+}
+</style>

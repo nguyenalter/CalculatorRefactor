@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import HistoryTable from "../components/HistoryTable.vue";
+import HistoryTable from '../components/HistoryTable.vue';
 
 export default {
   components: {

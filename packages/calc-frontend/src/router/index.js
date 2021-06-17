@@ -1,31 +1,46 @@
-import Vue from "vue";
-import VueRouter from "vue-router";
-import Home from "../views/Home.vue";
+import Vue from 'vue';
+import VueRouter from 'vue-router';
+import Home from '../views/Home.vue';
+import Account from '../views/Account.vue';
+import History from '../views/History.vue';
+import SignIn from '../views/SignIn.vue';
+import SignUp from '../views/SignUp.vue';
+import Dashboard from '../views/Dashboard.vue';
 
 Vue.use(VueRouter);
 
 const routes = [
   {
-    path: "/",
-    name: "Home",
+    path: '/',
     component: Home,
+    alias: '*',
   },
   {
-    path: "/account",
-    name: "Account",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import("../views/Account.vue"),
+    path: '/account',
+    component: Account,
+    children: [
+      {
+        path: '',
+        component: Dashboard,
+      },
+      {
+        path: 'signup',
+        component: SignUp,
+      },
+      {
+        path: 'signin',
+        component: SignIn,
+      },
+    ],
   },
   {
-    path: "/history",
-    name: "History",
-    component: () => import("../views/History.vue"),
+    path: '/history',
+    component: History,
   },
 ];
 
 const router = new VueRouter({
+  mode: 'history',
   routes,
 });
 

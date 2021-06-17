@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="font-sans grid">
     <div id="nav" class="text-center bg-purple-300 font-bold p-10">
-      <router-link to="/">Home</router-link> |
+      <router-link to="/">Calculator</router-link> |
       <router-link to="/history">History</router-link> |
       <router-link to="/account">Account</router-link>
     </div>

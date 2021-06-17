@@ -1,29 +1,13 @@
 <template>
-  <div class="flex justify-center mt-5">
-    <sign-up v-if="switchScreen == 0"></sign-up>
-    <sign-in v-else-if="switchScreen == 1"> </sign-in>
-    <dashboard v-else-if="switchScreen == 2" :username="username"></dashboard>
-    <p v-else></p>
+  <div class="container grid justify-items-center mt-5">
+    <p class="text-blue-400 text-4xl font-bold">Account</p>
+    <router-view class="bg-white mt-10" />
   </div>
 </template>
 
 <script>
-import SignIn from "../components/SignIn.vue";
-import SignUp from "../components/SignUp.vue";
-import Dashboard from "../components/Dashboard.vue";
+
 export default {
-  components: {
-    SignIn,
-    SignUp,
-    Dashboard,
-  },
-  computed: {
-    switchScreen() {
-      return this.$store.state.navigateTo;
-    },
-    username() {
-      return this.$store.state.username;
-    },
-  },
+  name: 'Account',
 };
 </script>

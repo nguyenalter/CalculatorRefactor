@@ -1,4 +1,3 @@
-<!-- This example requires Tailwind CSS v2.0+ -->
 <template>
   <div class="container mx-auto grid justify-items-center">
     <div v-if="historyData.length == 0">
@@ -20,21 +19,10 @@
             offset: 5,
           }"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-              clip-rule="evenodd"
-            />
-          </svg>
+          <deleteSVG />
         </button>
         <button
-          @click="exportCSV"
+          @click="exportToCSV"
           class="rounded border-2 border-blue-400 bg-green-400"
           v-tooltip="{
             content: 'Export to csv',
@@ -42,17 +30,7 @@
             offset: 5,
           }"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.707 7.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L13 8.586V5h3a2 2 0 012 2v5a2 2 0 01-2 2H8a2 2 0 01-2-2V7a2 2 0 012-2h3v3.586L9.707 7.293zM11 3a1 1 0 112 0v2h-2V3z"
-            />
-            <path d="M4 9a2 2 0 00-2 2v5a2 2 0 002 2h8a2 2 0 002-2H4V9z" />
-          </svg>
+          <saveSVG />
         </button>
       </div>
 
@@ -71,76 +49,11 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th
-                scope="col"
-                class="
-                  px-6
-                  py-3
-                  text-left text-xs
-                  font-medium
-                  text-gray-500
-                  uppercase
-                  tracking-wider
-                "
-              >
-                Time
-              </th>
-              <th
-                scope="col"
-                class="
-                  px-6
-                  py-3
-                  text-left text-xs
-                  font-medium
-                  text-gray-500
-                  uppercase
-                  tracking-wider
-                "
-              >
-                first integer
-              </th>
-              <th
-                scope="col"
-                class="
-                  px-6
-                  py-3
-                  text-left text-xs
-                  font-medium
-                  text-gray-500
-                  uppercase
-                  tracking-wider
-                "
-              >
-                operator
-              </th>
-              <th
-                scope="col"
-                class="
-                  px-6
-                  py-3
-                  text-left text-xs
-                  font-medium
-                  text-gray-500
-                  uppercase
-                  tracking-wider
-                "
-              >
-                second integer
-              </th>
-              <th
-                scope="col"
-                class="
-                  px-6
-                  py-3
-                  text-left text-xs
-                  font-medium
-                  text-gray-500
-                  uppercase
-                  tracking-wider
-                "
-              >
-                result
-              </th>
+              <th scope="col" class="table-header-custom">Time</th>
+              <th scope="col" class="table-header-custom">first integer</th>
+              <th scope="col" class="table-header-custom">operator</th>
+              <th scope="col" class="table-header-custom">second integer</th>
+              <th scope="col" class="table-header-custom">result</th>
               <th scope="col" class="relative px-6 py-3">
                 <span class="sr-only">Replay</span>
               </th>
@@ -152,23 +65,19 @@
               :key="index"
               v-bind:class="{ 'bg-blue-100': index % 2 }"
             >
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{
-                  dayjs(parseInt(record.timestamp)).format(
-                    "YYYY/MM/DD HH:mm:ss"
-                  )
-                }}
+              <td class="row-custom">
+                {{ dayjs(record.createdAt).format('YYYY/MM/DD HH:mm:ss') }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td class="row-custom">
                 {{ record.firstVal }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td class="row-custom">
                 {{ record.option }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td class="row-custom">
                 {{ record.secondVal }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td class="row-custom">
                 {{ record.result }}
               </td>
               <td
@@ -183,7 +92,7 @@
                 <a
                   href="javascript:"
                   class="text-indigo-600 hover:text-indigo-900"
-                  @click="deleteRecord(record.timestamp)"
+                  @click="deleteOneRowFromHistory(record.createdAt)"
                   >Remove</a
                 >
               </td>
@@ -196,13 +105,23 @@
 </template>
 
 <script>
-import dayjs from "dayjs";
-import { saveAs } from "file-saver";
+import dayjs from 'dayjs';
+import { exportCSV } from '../services/utils';
+import deleteSVG from '../assets/delete.svg';
+import saveSVG from '../assets/save.svg';
+import '../assets/tooltip.css';
+
 export default {
-  name: "HistoryTable",
+  name: 'HistoryTable',
+  components: {
+    deleteSVG,
+    saveSVG,
+  },
   data() {
     return {
       dayjs,
+      exportCSV,
+      localHistory: [],
     };
   },
   computed: {
@@ -210,159 +129,43 @@ export default {
       return this.$store.state.username;
     },
     historyData() {
-      return [
-        ...(JSON.parse(localStorage.getItem("history")) ||
-          this.$store.state.historyData),
-        //].sort((data1, data2) => data2.timestamp - data1.timestamp);
-      ].reverse();
+      return this.$store.getters.getHistory.concat(this.localHistory).reverse();
     },
   },
-  mounted() {},
+  mounted() {
+    console.log('mounted run');
+    this.localHistory = JSON.parse(localStorage.getItem('history')) || [];
+  },
   methods: {
+    exportToCSV() {
+      exportCSV(this.historyData);
+    },
     deleteAll() {
-      console.log("delete all clicked");
-      if (this.username == "") {
+      console.log('delete all clicked');
+      if (this.username == '') {
         // delete from local
-        localStorage.removeItem("history");
+        this.localHistory = [];
+        localStorage.removeItem('history');
       } else {
         // delete from server
-        this.$store.dispatch("deleteAll");
+        this.$store.dispatch('deleteAllHistoryData');
       }
     },
-    exportCSV() {
-      console.log("export clicked");
-      const currentHistory = this.historyData;
-      let csv =
-        "firstOperand,operator,secondOperand,result,timestamp\n" +
-        currentHistory
-          .map(function(d) {
-            return JSON.stringify(Object.values(d));
-          })
-          .join("\n")
-          .replace(/(^\[)|(\]$)/gm, "");
-      var file = new File([csv], "history.csv", {
-        type: "text/plain;charset=utf-8",
-      });
-      saveAs(file);
-    },
-    deleteRecord(timestamp) {
-      console.log("remove clicked");
-      if (this.username == "") {
-        // delete from local
-        localStorage.removeItem("history");
+    deleteOneRowFromHistory(createdAt) {
+      if (this.username == '') {
+        // delete one history data from local
+        const newHistory = JSON.parse(localStorage.getItem('history')).filter(
+          (ele) => ele.createdAt != createdAt,
+        );
+        console.log('remove one row clicked');
+        this.localHistory = newHistory;
+        localStorage.setItem('history', JSON.stringify(newHistory));
       } else {
-        // delete from server
-        this.$store.dispatch("deleteOne", { timestamp });
+        // delete one history data from server
+        this.$store.dispatch('deleteOneHistoryData', { createdAt });
+        this.localHistory = [];
       }
     },
   },
 };
 </script>
-
-<style>
-.tooltip {
-  display: block !important;
-  z-index: 10000;
-}
-
-.tooltip .tooltip-inner {
-  background: black;
-  color: white;
-  border-radius: 16px;
-  padding: 5px 10px 4px;
-}
-
-.tooltip .tooltip-arrow {
-  width: 0;
-  height: 0;
-  border-style: solid;
-  position: absolute;
-  margin: 5px;
-  border-color: black;
-  z-index: 1;
-}
-
-.tooltip[x-placement^="top"] {
-  margin-bottom: 5px;
-}
-
-.tooltip[x-placement^="top"] .tooltip-arrow {
-  border-width: 5px 5px 0 5px;
-  border-left-color: transparent !important;
-  border-right-color: transparent !important;
-  border-bottom-color: transparent !important;
-  bottom: -5px;
-  left: calc(50% - 5px);
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-.tooltip[x-placement^="bottom"] {
-  margin-top: 5px;
-}
-
-.tooltip[x-placement^="bottom"] .tooltip-arrow {
-  border-width: 0 5px 5px 5px;
-  border-left-color: transparent !important;
-  border-right-color: transparent !important;
-  border-top-color: transparent !important;
-  top: -5px;
-  left: calc(50% - 5px);
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-.tooltip[x-placement^="right"] {
-  margin-left: 5px;
-}
-
-.tooltip[x-placement^="right"] .tooltip-arrow {
-  border-width: 5px 5px 5px 0;
-  border-left-color: transparent !important;
-  border-top-color: transparent !important;
-  border-bottom-color: transparent !important;
-  left: -5px;
-  top: calc(50% - 5px);
-  margin-left: 0;
-  margin-right: 0;
-}
-
-.tooltip[x-placement^="left"] {
-  margin-right: 5px;
-}
-
-.tooltip[x-placement^="left"] .tooltip-arrow {
-  border-width: 5px 0 5px 5px;
-  border-top-color: transparent !important;
-  border-right-color: transparent !important;
-  border-bottom-color: transparent !important;
-  right: -5px;
-  top: calc(50% - 5px);
-  margin-left: 0;
-  margin-right: 0;
-}
-
-.tooltip.popover .popover-inner {
-  background: #f9f9f9;
-  color: black;
-  padding: 24px;
-  border-radius: 5px;
-  box-shadow: 0 5px 30px rgba(black, 0.1);
-}
-
-.tooltip.popover .popover-arrow {
-  border-color: #f9f9f9;
-}
-
-.tooltip[aria-hidden="true"] {
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.15s, visibility 0.15s;
-}
-
-.tooltip[aria-hidden="false"] {
-  visibility: visible;
-  opacity: 1;
-  transition: opacity 0.15s;
-}
-</style>
