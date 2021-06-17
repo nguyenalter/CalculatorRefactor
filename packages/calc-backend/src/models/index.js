@@ -1,12 +1,11 @@
-"use strict";
+import { readdirSync } from 'fs';
+import path from 'path';
 
-import { readdirSync } from "fs";
-import path from "path";
+import { Sequelize, DataTypes } from 'sequelize';
 
-import { Sequelize, DataTypes } from "sequelize";
 const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || "development";
-const config = require(__dirname + "/../../db/config.js")[env];
+const env = process.env.NODE_ENV || 'development';
+const config = require(`${__dirname}/../../db/config.js`)[env];
 const db = {};
 
 let sequelize;
@@ -17,16 +16,14 @@ if (config.use_env_variable) {
     config.database,
     config.username,
     config.password,
-    config
+    config,
   );
 }
 
 readdirSync(__dirname)
-  .filter((file) => {
-    return (
-      file.indexOf(".") !== 0 && file !== basename && file.slice(-3) === ".js"
-    );
-  })
+  .filter((file) => (
+    file.indexOf('.') !== 0 && file !== basename && file.slice(-3) === '.js'
+  ))
   .forEach((file) => {
     const model = require(path.join(__dirname, file))(sequelize, DataTypes);
     db[model.name] = model;

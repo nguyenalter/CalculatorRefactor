@@ -1,36 +1,36 @@
-require("dotenv").config();
+require('dotenv').config();
 
-let x = {
+const sequelizeConfig = {
   use_env_variable: true,
   development: {
     username: process.env.DB_USER,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
-    host: "127.0.0.1",
-    dialect: "postgres",
+    host: '127.0.0.1',
+    dialect: 'postgres',
     // sync: {
     //   force: true
     // },
     define: {
-      freezeTableName: true
-    }
+      freezeTableName: true,
+    },
   },
   test: {
-    username: "root",
-    password: "null",
-    database: "database_test",
-    host: "127.0.0.1",
-    dialect: "postgres",
-    logging: false
+    username: 'root',
+    password: 'null',
+    database: 'database_test',
+    host: '127.0.0.1',
+    dialect: 'postgres',
+    logging: false,
   },
   production: {
-    username: "root",
-    password: "null",
-    database: "database_production",
-    host: "127.0.0.1",
-    dialect: "postgres",
-    logging: false
+    username: 'root',
+    password: 'null',
+    database: 'database_production',
+    host: '127.0.0.1',
+    dialect: 'postgres',
+    logging: false,
   },
 };
 
-module.exports = x;
+module.exports = sequelizeConfig;

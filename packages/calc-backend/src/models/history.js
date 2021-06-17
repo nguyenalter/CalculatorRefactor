@@ -1,5 +1,5 @@
-"use strict";
-const { Model } = require("sequelize");
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
   class History extends Model {
     /**
@@ -35,15 +35,19 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
-      timestamp: {
+      // timestamp: {
+      //   allowNull: false,
+      //   type: DataTypes.STRING,
+      // },
+      createdAt: {
         allowNull: false,
-        type: DataTypes.STRING,
+        type: DataTypes.DATE,
       },
     },
     {
       sequelize,
-      modelName: "Histories",
-    }
+      modelName: 'Histories',
+    },
   );
   return History;
 };
